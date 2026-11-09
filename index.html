@@ -225,9 +225,9 @@ const CONFIG = {
   // Oyunun sonunda açılan hediye. Gerçekte vereceğin hediyeyle aynı olmalı.
   gift: {
     title: "Senin masan",
-    text: "Bu evi kurarken bir şey eksikti: sana ait bir yer. Artık var. Masanın üstünde bir lamba: nereye taşınırsak taşınalım, İstanbul, Ankara, belki bir gün Londra, ışığın seninle. Yanında bir seramik atölyesi kaydı: oyunda tasarladığın tabağı bu kez kendi ellerinle yapacaksın.",
+    text: "Bu evi kurarken bir şey eksikti: sana ait bir yer. Artık var. Masanın üstünde beğendiğin o pileli lamba. Nereye taşınırsak taşınalım, İstanbul, Ankara, belki bir gün Londra, masan da ışığın da seninle gelecek. Yanında bir seramik atölyesi kaydı: oyunda tasarladığın tabağı bu kez kendi ellerinle yapacaksın.",
     image: "",             // örn. "img/hediye.jpg"
-    lampColor: "#E9765B",  // oyundaki lambanın rengi, gerçek hediyeye yakın seç
+    lampColor: "#F4F0E8",  // KUDDLAVA: beyaz pileli abajur
     finalLine: "Şimdi başını kaldır 💛",
   },
   letter: [
@@ -368,10 +368,14 @@ function candleSVG(d){
   return holder + body + flame + front;
 }
 function lampSVG(on, col = CONFIG.gift.lampColor){
-  return `${on ? `<circle cx="50" cy="40" r="50" fill="url(#glow)"/>` : ""}
-    <path d="M20 46 Q20 14 50 14 Q80 14 80 46 Z" fill="${col}" stroke="${mix(col, "#000000", .25)}" stroke-width="1"/>
-    <rect x="47" y="46" width="6" height="40" fill="${col}"/><ellipse cx="50" cy="88" rx="17" ry="5" fill="${col}"/>
-    ${on ? `<ellipse cx="50" cy="47" rx="26" ry="3" fill="#FFF3C4"/>` : ""}`;
+  // pileli, kubbe formlu abajur; tepesinde ahşap topuz
+  const shade = "M18 84 Q16 44 50 24 Q84 44 82 84 Z";
+  let pleats = "";
+  for (let x = 22; x <= 78; x += 5.6){ const top = 50 + (x - 50) * .55; pleats += `<path d="M${top} ${26 + Math.abs(x - 50) * .7} L${x} 84" stroke="${mix(col, "#000000", .18)}" stroke-width=".8"/>`; }
+  return `${on ? `<circle cx="50" cy="55" r="50" fill="url(#glow)"/>` : ""}
+    <ellipse cx="50" cy="86" rx="33" ry="4" fill="#000" opacity=".12"/>
+    <path d="${shade}" fill="${on ? "#FFF6DD" : col}" stroke="${mix(col, "#000000", .3)}" stroke-width="1"/>${pleats}
+    <circle cx="50" cy="20" r="5.5" fill="#C89B6A" stroke="#9c7349" stroke-width=".8"/>`;
 }
 // Hediye ekranı: masa, üstünde yanan lamba ve oyunda tasarladığı tabak
 function deskSVG(){
