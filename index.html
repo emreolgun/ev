@@ -398,7 +398,7 @@ function candleSVG(d){
 function lampSVG(on, col = CONFIG.gift.lampColor){
   // KUDDLAVA: geniş, basık pileli şapka (alt kenarı tırtıklı), tepede ahşap topuz,
   // altında aşağı doğru genişleyen pileli gövde ve kablo
-  const lit = on ? "#FFF4D6" : col, dark = mix(lit, "#000000", on ? .06 : .1), edge = mix(col, "#000000", .3);
+  const lit = on ? "#FFF1C9" : col, dark = mix(lit, "#000000", on ? .13 : .16), edge = "#9a8b72";
   const N = 24;
   let shade = "";
   for (let k = 0; k < N; k++){
@@ -411,11 +411,16 @@ function lampSVG(on, col = CONFIG.gift.lampColor){
     const t0 = 35 + 3 * k, t1 = 35 + 3 * (k + 1), b0 = 31 + 3.8 * k, b1 = 31 + 3.8 * (k + 1);
     body += `<path d="M${t0} 43 L${t1} 43 L${b1} 90 L${b0} 90 Z" fill="${k % 2 ? dark : lit}"/>`;
   }
+  // açık renk zeminde kaybolmasın diye dış hatlar belirgin çiziliyor
+  let rim = "M43 15 L57 15 L97 43";
+  for (let k = N; k >= 0; k--) rim += ` L${3 + 94 * k / N} ${k % 2 ? 45 : 41}`;
   return `${on ? `<circle cx="50" cy="48" r="50" fill="url(#glow)"/>` : ""}
-    <ellipse cx="50" cy="91" rx="24" ry="3" fill="#000" opacity=".12"/>
-    <path d="M68 87 Q82 92 99 89" stroke="#bdbdbd" stroke-width="1.6" fill="none"/>
-    <g stroke="${edge}" stroke-width=".25">${body}</g>
-    <g stroke="${edge}" stroke-width=".25">${shade}</g>
+    <ellipse cx="50" cy="91" rx="24" ry="3" fill="#000" opacity=".15"/>
+    <path d="M68 87 Q82 92 99 89" stroke="#9e9e9e" stroke-width="1.6" fill="none"/>
+    <g stroke="${edge}" stroke-width=".4">${body}</g>
+    <path d="M35 43 L65 43 L69 90 L31 90 Z" fill="none" stroke="${edge}" stroke-width="1.2" stroke-linejoin="round"/>
+    <g stroke="${edge}" stroke-width=".4">${shade}</g>
+    <path d="${rim} Z" fill="none" stroke="${edge}" stroke-width="1.2" stroke-linejoin="round"/>
     <ellipse cx="50" cy="14" rx="8" ry="3.4" fill="#C89B6A"/><ellipse cx="50" cy="12.6" rx="6.6" ry="2.4" fill="#DDB585"/>`;
 }
 // Hediye ekranı: LISABO masa (açık dişbudak, ince tabla, ortada tutamaksız çekmece,
