@@ -396,14 +396,27 @@ function candleSVG(d){
   return holder + body + flame + front;
 }
 function lampSVG(on, col = CONFIG.gift.lampColor){
-  // pileli, kubbe formlu abajur; tepesinde ahşap topuz
-  const shade = "M18 84 Q16 44 50 24 Q84 44 82 84 Z";
-  let pleats = "";
-  for (let x = 22; x <= 78; x += 5.6){ const top = 50 + (x - 50) * .55; pleats += `<path d="M${top} ${26 + Math.abs(x - 50) * .7} L${x} 84" stroke="${mix(col, "#000000", .18)}" stroke-width=".8"/>`; }
-  return `${on ? `<circle cx="50" cy="55" r="50" fill="url(#glow)"/>` : ""}
-    <ellipse cx="50" cy="86" rx="33" ry="4" fill="#000" opacity=".12"/>
-    <path d="${shade}" fill="${on ? "#FFF6DD" : col}" stroke="${mix(col, "#000000", .3)}" stroke-width="1"/>${pleats}
-    <circle cx="50" cy="20" r="5.5" fill="#C89B6A" stroke="#9c7349" stroke-width=".8"/>`;
+  // KUDDLAVA: geniş, basık pileli şapka (alt kenarı tırtıklı), tepede ahşap topuz,
+  // altında aşağı doğru genişleyen pileli gövde ve kablo
+  const lit = on ? "#FFF4D6" : col, dark = mix(lit, "#000000", on ? .06 : .1), edge = mix(col, "#000000", .3);
+  const N = 24;
+  let shade = "";
+  for (let k = 0; k < N; k++){
+    const t0 = 43 + 14 * k / N, t1 = 43 + 14 * (k + 1) / N, b0 = 3 + 94 * k / N, b1 = 3 + 94 * (k + 1) / N;
+    const y0 = k % 2 ? 41 : 45, y1 = k % 2 ? 45 : 41;  // tırtıklı alt kenar
+    shade += `<path d="M${t0} 15 L${t1} 15 L${b1} ${y1} L${b0} ${y0} Z" fill="${k % 2 ? dark : lit}"/>`;
+  }
+  let body = "";
+  for (let k = 0; k < 10; k++){
+    const t0 = 35 + 3 * k, t1 = 35 + 3 * (k + 1), b0 = 31 + 3.8 * k, b1 = 31 + 3.8 * (k + 1);
+    body += `<path d="M${t0} 43 L${t1} 43 L${b1} 90 L${b0} 90 Z" fill="${k % 2 ? dark : lit}"/>`;
+  }
+  return `${on ? `<circle cx="50" cy="48" r="50" fill="url(#glow)"/>` : ""}
+    <ellipse cx="50" cy="91" rx="24" ry="3" fill="#000" opacity=".12"/>
+    <path d="M68 87 Q82 92 99 89" stroke="#bdbdbd" stroke-width="1.6" fill="none"/>
+    <g stroke="${edge}" stroke-width=".25">${body}</g>
+    <g stroke="${edge}" stroke-width=".25">${shade}</g>
+    <ellipse cx="50" cy="14" rx="8" ry="3.4" fill="#C89B6A"/><ellipse cx="50" cy="12.6" rx="6.6" ry="2.4" fill="#DDB585"/>`;
 }
 // Hediye ekranı: masa, üstünde yanan lamba ve oyunda tasarladığı tabak
 function deskSVG(){
