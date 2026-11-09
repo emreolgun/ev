@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Annem Büyüyünce</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4D77A;--paper:#FFF9EE;--ink:#1F2A5A;--pink:#F28AC9;--pinkd:#c94f97;--green:#8CC63F;--muted:#5b6386;--night:#141a3a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:Nunito,system-ui,sans-serif;color:var(--ink);background:var(--bg);transition:background .8s,color .8s;user-select:none;-webkit-user-select:none}
+body.night{background:var(--night);color:#ecebff}
+h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:0 0 .35em;line-height:1.12}
+p{line-height:1.55;margin:.45em 0}
+#stage{position:fixed;inset:0;overflow-y:auto;display:flex;justify-content:center}
+.screen{width:100%;max-width:480px;padding:18px 16px 36px;display:flex;flex-direction:column;align-items:center;text-align:center;animation:enter .5s ease}
+.screen>:first-child{margin-top:auto}.screen>:last-child{margin-bottom:auto}
+@keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.kicker{font-weight:800;letter-spacing:.1em;font-size:13px;opacity:.7;margin:0 0 6px}
+.muted{opacity:.75;font-size:15px}
+.card{background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:22px;padding:18px;width:100%;box-shadow:5px 5px 0 var(--ink);text-align:left}
+.btn{font:800 17px Nunito,sans-serif;background:var(--pink);color:var(--ink);border:3px solid var(--ink);border-radius:999px;padding:12px 26px;margin-top:16px;cursor:pointer;box-shadow:4px 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.btn.ghost{background:var(--paper)}
+.btn:disabled{opacity:.4}
+body.night .btn{box-shadow:4px 4px 0 #000}
+.stripes{height:10px;border-radius:6px;margin:8px 0 12px;background:repeating-linear-gradient(90deg,var(--pink) 0 12px,var(--green) 12px 17px)}
+
+/* Konuşma */
+.talk{display:flex;flex-direction:column;align-items:center;width:100%}
+.talk .who-art{height:170px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:-6px}
+.talk .who-art svg{height:100%;width:auto}
+.bubble{background:var(--paper);color:var(--ink);border:3px solid var(--ink);border-radius:22px;padding:14px 18px;text-align:left;box-shadow:4px 4px 0 var(--ink);width:100%;min-height:96px;font-size:17px}
+.bubble .who{display:block;font-weight:800;color:var(--pinkd);font-size:13px;letter-spacing:.08em;text-transform:uppercase}
+.bubble.narr{font-family:Fraunces,serif;font-style:italic;font-size:18px;background:transparent;color:inherit;border:none;box-shadow:none;text-align:center}
+.tap{font-size:13px;opacity:.6;margin-top:10px}
+
+/* Tasarım ekranı */
+.preview{width:min(68vw,250px);aspect-ratio:1;background:var(--paper);border:3px solid var(--ink);border-radius:26px;box-shadow:5px 5px 0 var(--ink);margin:10px 0 12px;padding:10px}
+.preview svg{width:100%;height:100%;display:block}
+.row{width:100%;margin:6px 0;text-align:left}
+.rl{font-weight:800;font-size:13px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:5px}
+.op{font:700 14px Nunito;border:2px solid var(--ink);border-radius:999px;padding:6px 12px;background:var(--paper);color:var(--ink);cursor:pointer}
+.op.sel{background:var(--ink);color:var(--paper)}
+.sw{width:32px;height:32px;border-radius:50%;border:2px solid var(--ink);cursor:pointer;padding:0}
+.sw.sel{box-shadow:0 0 0 3px var(--paper),0 0 0 6px var(--ink)}
+
+/* Ev */
+.room{width:100%;border:3px solid var(--ink);border-radius:22px;overflow:hidden;box-shadow:5px 5px 0 var(--ink);background:#F7EFE2;margin:6px 0 12px}
+.room svg{display:block;width:100%;height:auto}
+.list{display:flex;flex-direction:column;gap:9px;width:100%}
+.stop{display:flex;align-items:center;gap:12px;background:var(--paper);border:3px solid var(--ink);border-radius:16px;padding:10px 14px;text-align:left;font-weight:800;cursor:pointer;box-shadow:3px 3px 0 var(--ink);color:var(--ink);font-family:Nunito;font-size:16px}
+.stop small{display:block;font-weight:400;opacity:.75;font-size:13px}
+.stop .n{font-family:Fraunces,serif;font-size:22px;width:30px}
+.stop.done{background:#e3f1cf}
+.stop.locked{opacity:.45;cursor:default}
+.stop.next{animation:pulse 1.6s infinite}
+@keyframes pulse{50%{transform:scale(1.025)}}
+.reset{background:none;border:none;color:inherit;opacity:.4;font:13px Nunito;margin-top:18px;cursor:pointer}
+
+/* Hat dengeleme */
+.task{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 12px;border:2px solid var(--ink);border-radius:12px;font-weight:700;font-size:15px}
+.task i{font-style:normal;font-weight:800}
+.gap{width:100%;height:24px;border:none;background:none;cursor:pointer;position:relative;color:var(--ink);font:700 11px Nunito;opacity:.5}
+.gap.cut{opacity:1}
+.gap.cut::before{content:"";position:absolute;left:0;right:0;top:50%;border-top:3px dashed var(--pinkd)}
+.gap span{position:relative;background:var(--bg);padding:0 8px}
+.bars{width:100%;margin:12px 0 4px}
+.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-weight:800;font-size:13px}
+.bar .tr{flex:1;height:16px;border:2px solid var(--ink);border-radius:8px;position:relative;background:var(--paper);overflow:hidden}
+.bar .tr i{position:absolute;left:0;top:0;bottom:0;background:var(--green)}
+.bar .tr i.over{background:#e9765b}
+.bar .tr .tgt{position:absolute;top:-2px;bottom:-2px;border-left:2px solid var(--ink)}
+.st0{background:#FCE3F1}.st1{background:#E3F1CF}.st2{background:#DCE6FB}
+
+/* Kelime, matris */
+.words{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin:10px 0}
+.word{font:800 15px Nunito;padding:14px 4px;border:2px solid var(--ink);border-radius:14px;background:var(--paper);color:var(--ink);cursor:pointer}
+.word.sel{background:var(--pink)}
+.mrow{display:flex;justify-content:space-between;align-items:center;margin:7px 0;gap:8px}
+.mrow span{font-weight:700;font-size:15px}
+.dots{display:flex;gap:5px;flex-shrink:0}
+.dots button{width:26px;height:26px;border-radius:50%;border:2px solid var(--ink);background:var(--paper);padding:0;cursor:pointer}
+.dots button.on{background:var(--pink)}
+.mcard{margin-bottom:12px}
+.mcard h3{font-size:20px}
+.res{width:100%;margin:8px 0}
+.res .bar .tr i{background:var(--pink)}
+
+/* Nefes */
+.breath{width:220px;height:220px;border-radius:50%;margin:18px auto;position:relative;touch-action:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.breath .ring{position:absolute;inset:0;border-radius:50%;border:3px solid #ecebff55}
+.breath .orb{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 40% 35%,#ffe9b0,#f2a65a 60%,#c96a3a);transform:scale(.35);box-shadow:0 0 60px #f2a65a88}
+.breath .lbl{position:absolute;font-weight:800;color:#1b1f3a;font-size:16px;pointer-events:none}
+.memory{min-height:90px;font-family:Fraunces,serif;font-style:italic;font-size:18px;max-width:380px}
+
+/* Takvim, hediye */
+.cal{width:130px;margin:0 auto 14px;background:var(--paper);border:4px solid var(--ink);border-radius:18px;box-shadow:6px 6px 0 var(--ink);overflow:hidden;color:var(--ink)}
+.cal .mo{background:var(--pink);border-bottom:4px solid var(--ink);font-weight:800;letter-spacing:3px;padding:6px 0}
+.cal .day{font-family:Fraunces,serif;font-weight:800;font-size:70px;line-height:1.15}
+.cal .day.turn{animation:turn .9s ease}
+@keyframes turn{50%{transform:rotateX(90deg);opacity:.2}}
+.gift{font-size:110px;cursor:pointer;display:inline-block;filter:drop-shadow(5px 5px 0 var(--ink))}
+.gift.shake{animation:shake .5s}
+@keyframes shake{20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(6deg)}}
+.letter p{font-size:16px}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#F4D77A;padding:10px 18px;border-radius:999px;font-weight:800;opacity:0;transition:opacity .3s;z-index:30;pointer-events:none;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div class="toast" id="toast"></div>
+<canvas id="confetti"></canvas>
+
+<!-- Karakterler ve ortak desenler -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="stripes" width="10" height="11" patternUnits="userSpaceOnUse"><rect width="10" height="11" fill="#F59AD0"/><rect y="7" width="10" height="4" fill="#8DC63F"/></pattern>
+    <pattern id="gingham" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#fff"/><rect width="4" height="8" fill="#1a1a1a" opacity=".55"/><rect width="8" height="4" fill="#1a1a1a" opacity=".55"/></pattern>
+    <pattern id="checker" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#f4f1ea"/><rect width="6" height="6" fill="#1a1a1a"/><rect x="6" y="6" width="6" height="6" fill="#1a1a1a"/></pattern>
+    <pattern id="corn" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="5" height="5" fill="#E9B526"/><circle cx="2.5" cy="2.5" r="1.6" fill="#F7D24A"/></pattern>
+    <radialGradient id="glow"><stop offset="0" stop-color="#FFE9A8" stop-opacity=".95"/><stop offset=".5" stop-color="#FFD27A" stop-opacity=".35"/><stop offset="1" stop-color="#FFD27A" stop-opacity="0"/></radialGradient>
+    <radialGradient id="flame"><stop offset="0" stop-color="#fff6c8"/><stop offset=".6" stop-color="#ffc24a"/><stop offset="1" stop-color="#ff8a2a"/></radialGradient>
+
+    <symbol id="c-emre" viewBox="0 0 140 262">
+      <path d="M96 112 L118 70 L126 30" stroke="#E9B996" stroke-width="12" stroke-linecap="round" fill="none"/>
+      <rect x="116" y="6" width="18" height="30" rx="4" fill="#2b2b33"/>
+      <path d="M32 180 L88 180 L92 252 L66 252 L60 206 L54 252 L28 252 Z" fill="#3D4A63"/>
+      <ellipse cx="41" cy="254" rx="15" ry="6" fill="#2a2a2a"/><ellipse cx="79" cy="254" rx="15" ry="6" fill="#2a2a2a"/>
+      <path d="M26 104 Q60 96 94 104 L108 140 L94 146 L90 122 L90 184 L30 184 L30 122 L26 146 L12 140 Z" fill="#A89676" stroke="#1F2A5A" stroke-width="2"/>
+      <path d="M18 144 L14 186" stroke="#E9B996" stroke-width="11" stroke-linecap="round"/>
+      <rect x="52" y="88" width="16" height="18" fill="#E9B996"/>
+      <ellipse cx="60" cy="62" rx="26" ry="30" fill="#EFC3A0"/>
+      <path d="M36 70 Q40 96 60 98 Q80 96 84 70 Q80 86 60 88 Q40 86 36 70Z" fill="#6b5446" opacity=".35"/>
+      <path d="M32 58 Q28 26 52 24 Q60 16 74 22 Q92 26 88 56 Q84 40 72 38 Q60 34 50 40 Q40 42 36 60 Z" fill="#3A2A22"/>
+      <path d="M44 60 Q50 55 55 60" stroke="#2B1D17" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M65 60 Q70 55 76 60" stroke="#2B1D17" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M42 52 L54 50 M66 50 L78 52" stroke="#3A2A22" stroke-width="3" stroke-linecap="round"/>
+      <path d="M44 72 Q60 92 76 72 Z" fill="#fff" stroke="#7a3a33" stroke-width="2.5" stroke-linejoin="round"/>
+      <circle cx="44" cy="68" r="5" fill="#e88" opacity=".25"/><circle cx="76" cy="68" r="5" fill="#e88" opacity=".25"/>
+    </symbol>
+
+    <symbol id="c-merve" viewBox="-8 0 120 256">
+      <path d="M36 104 L18 160" stroke="#1a1a1a" stroke-width="5"/>
+      <path d="M32 172 L88 172 L104 246 L64 246 L60 204 L56 246 L16 246 Z" fill="#23306B"/>
+      <path d="M44 190 L36 244 M76 190 L84 244 M60 204 L60 244" stroke="#18225a" stroke-width="2"/>
+      <ellipse cx="34" cy="248" rx="14" ry="5" fill="#2a2a2a"/><ellipse cx="86" cy="248" rx="14" ry="5" fill="#2a2a2a"/>
+      <path d="M28 104 Q60 96 92 104 L108 148 L92 154 L90 124 L90 178 L30 178 L30 124 L28 154 L12 148 Z" fill="url(#stripes)" stroke="#1F2A5A" stroke-width="2"/>
+      <path d="M100 152 L104 198" stroke="#F2C6A6" stroke-width="9" stroke-linecap="round"/>
+      <path d="M20 152 L18 196" stroke="#F2C6A6" stroke-width="9" stroke-linecap="round"/>
+      <rect x="-4" y="160" width="36" height="50" rx="5" fill="url(#gingham)" stroke="#1a1a1a" stroke-width="2"/>
+      <circle cx="6" cy="172" r="1.8" fill="#F28AC9"/><circle cx="20" cy="180" r="1.8" fill="#8DC63F"/><circle cx="10" cy="194" r="1.8" fill="#F2C230"/><circle cx="24" cy="200" r="1.8" fill="#4c7bd9"/>
+      <rect x="53" y="88" width="14" height="18" fill="#F2C6A6"/>
+      <path d="M50 104 Q60 120 70 104" stroke="#d4a373" stroke-width="1.5" fill="none"/>
+      <circle cx="66" cy="22" r="15" fill="#C8693A"/>
+      <ellipse cx="60" cy="58" rx="32" ry="34" fill="#C8693A"/>
+      <path d="M32 56 Q24 88 36 104" stroke="#C8693A" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M88 56 Q96 86 86 102" stroke="#C8693A" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <ellipse cx="60" cy="66" rx="24" ry="28" fill="#F2C6A6"/>
+      <path d="M34 56 Q44 30 84 44 Q88 52 86 60 Q74 44 54 46 Q42 48 36 62 Z" fill="#C8693A"/>
+      <rect x="37" y="57" width="20" height="14" rx="4" fill="#B5703F" fill-opacity=".85" stroke="#2B1D17" stroke-width="3"/>
+      <rect x="63" y="57" width="20" height="14" rx="4" fill="#B5703F" fill-opacity=".85" stroke="#2B1D17" stroke-width="3"/>
+      <path d="M57 62 L63 62" stroke="#2B1D17" stroke-width="3"/>
+      <path d="M48 80 Q60 92 72 80 Q60 85 48 80 Z" fill="#fff" stroke="#8a3b33" stroke-width="2" stroke-linejoin="round"/>
+    </symbol>
+
+    <symbol id="c-ela" viewBox="10 8 100 182">
+      <path d="M48 140 L46 176 M72 140 L74 176" stroke="#F0C8A8" stroke-width="12" stroke-linecap="round"/>
+      <path d="M34 178 Q46 170 56 180 L56 186 L34 186 Z" fill="#fff" stroke="#999" stroke-width="1.5"/>
+      <path d="M64 180 Q74 170 86 178 L86 186 L64 186 Z" fill="#fff" stroke="#999" stroke-width="1.5"/>
+      <path d="M34 122 L86 122 L88 148 L64 148 L60 136 L56 148 L32 148 Z" fill="#8FB0D6" stroke="#5f7fa6" stroke-width="1.5"/>
+      <path d="M30 70 Q60 64 90 70 L102 96 L88 102 L86 88 L86 128 L34 128 L34 88 L32 102 L18 96 Z" fill="#fff" stroke="#1F2A5A" stroke-width="2"/>
+      <g opacity=".22"><circle cx="40" cy="80" r="5" fill="#F28C28"/><circle cx="80" cy="84" r="6" fill="#F28C28"/></g>
+      <g transform="translate(60,98)">
+        <g fill="#7A4CC9"><ellipse rx="4" ry="9" transform="translate(0,-9)"/><ellipse rx="4" ry="9" transform="rotate(45) translate(0,-9)"/><ellipse rx="4" ry="9" transform="rotate(90) translate(0,-9)"/><ellipse rx="4" ry="9" transform="rotate(135) translate(0,-9)"/></g>
+        <g fill="#E0458A"><ellipse rx="4" ry="9" transform="rotate(180) translate(0,-9)"/><ellipse rx="4" ry="9" transform="rotate(225) translate(0,-9)"/><ellipse rx="4" ry="9" transform="rotate(270) translate(0,-9)"/><ellipse rx="4" ry="9" transform="rotate(315) translate(0,-9)"/></g>
+        <circle r="5" fill="#F2D03B"/>
+      </g>
+      <text x="60" y="124" font-size="6" text-anchor="middle" fill="#7A4CC9" font-family="Nunito" font-weight="800">GIRL POWER</text>
+      <path d="M24 98 L20 116" stroke="#F0C8A8" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="20" cy="118" r="6" fill="#F0C8A8"/><rect x="18" y="104" width="4" height="10" rx="2" fill="#F0C8A8"/>
+      <path d="M96 98 L100 116" stroke="#F0C8A8" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="100" cy="118" r="6" fill="#F0C8A8"/><rect x="98" y="104" width="4" height="10" rx="2" fill="#F0C8A8"/>
+      <ellipse cx="60" cy="36" rx="24" ry="25" fill="#9C6B45"/>
+      <circle cx="80" cy="58" r="5" fill="#8a5c3a"/><circle cx="82" cy="67" r="4.5" fill="#8a5c3a"/><circle cx="83" cy="75" r="4" fill="#8a5c3a"/>
+      <ellipse cx="60" cy="44" rx="19" ry="22" fill="#F5D0B2"/>
+      <path d="M41 38 Q50 18 60 24 Q70 18 79 38 Q72 28 60 30 Q48 28 41 38Z" fill="#9C6B45"/>
+      <circle cx="52" cy="44" r="2.6" fill="#2B1D17"/><circle cx="68" cy="44" r="2.6" fill="#2B1D17"/>
+      <path d="M52 54 Q60 61 68 54" stroke="#8a3b33" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="46" cy="52" r="4" fill="#f08" opacity=".12"/><circle cx="74" cy="52" r="4" fill="#f08" opacity=".12"/>
+    </symbol>
+
+    <symbol id="c-marsel" viewBox="6 0 100 122">
+      <path d="M24 82 L72 82 L76 114 L52 114 L48 100 L44 114 L20 114 Z" fill="url(#checker)" stroke="#1a1a1a" stroke-width="1.5"/>
+      <ellipse cx="32" cy="116" rx="11" ry="4" fill="#2a2a2a"/><ellipse cx="64" cy="116" rx="11" ry="4" fill="#2a2a2a"/>
+      <path d="M22 54 Q48 46 74 54 L80 86 L16 86 Z" fill="#A8243A" stroke="#6e1424" stroke-width="2"/>
+      <path d="M20 58 L12 78" stroke="#A8243A" stroke-width="11" stroke-linecap="round"/>
+      <path d="M76 58 L84 70" stroke="#A8243A" stroke-width="11" stroke-linecap="round"/>
+      <ellipse cx="92" cy="62" rx="9" ry="14" transform="rotate(30 92 62)" fill="url(#corn)" stroke="#b98a12" stroke-width="1.5"/>
+      <circle cx="86" cy="72" r="5" fill="#F5D0B2"/>
+      <ellipse cx="48" cy="34" rx="20" ry="19" fill="#F7D6BC"/>
+      <g fill="#E7B46E"><circle cx="30" cy="22" r="7"/><circle cx="38" cy="15" r="8"/><circle cx="49" cy="12" r="8"/><circle cx="60" cy="15" r="8"/><circle cx="67" cy="23" r="7"/><circle cx="28" cy="32" r="5"/><circle cx="69" cy="33" r="5"/></g>
+      <circle cx="41" cy="34" r="2.6" fill="#2B1D17"/><circle cx="56" cy="34" r="2.6" fill="#2B1D17"/>
+      <ellipse cx="48" cy="44" rx="6" ry="4" fill="#8a3b33"/><ellipse cx="48" cy="46" rx="3.5" ry="2" fill="#e8858a"/>
+      <circle cx="35" cy="41" r="4" fill="#f08" opacity=".15"/><circle cx="62" cy="41" r="4" fill="#f08" opacity=".15"/>
+    </symbol>
+  </defs>
+</svg>
+
+<script>
+/* =====================================================================
+   CONFIG — kişiselleştirmek için burayı düzenle
+   ===================================================================== */
+const CONFIG = {
+  name: "Merve",
+  from: "Emre",
+  girl: "Ela",
+  boy: "Marsel",
+  // Oyunun sonunda açılan hediye. Gerçekte vereceğin hediyeyle aynı olmalı.
+  gift: {
+    title: "Senin masan",
+    text: "Bu evi kurarken bir şey eksikti: sana ait bir yer. Artık var. Masanın üstünde bir lamba: nereye taşınırsak taşınalım, İstanbul, Ankara, belki bir gün Londra, ışığın seninle. Yanında bir seramik atölyesi kaydı: oyunda tasarladığın tabağı bu kez kendi ellerinle yapacaksın.",
+    image: "",             // örn. "img/hediye.jpg"
+    lampColor: "#E9765B",  // oyundaki lambanın rengi, gerçek hediyeye yakın seç
+    finalLine: "Şimdi başını kaldır 💛",
+  },
+  letter: [
+    "Sevgilim {name},",
+    "Son yıllarda çok yol değiştirdin. Kurumsal, kendi markan, iki bebek, Ankara, İstanbul, yine Ankara, yine İstanbul... Bazen bunları yarım kalmış şeyler gibi görüyorsun, biliyorum.",
+    "Ben öyle görmüyorum. Bir mühendisin, bir girişimcinin ve bir annenin aynı insanda nasıl yan yana durduğunu gördüm. {girl} ve {boy} büyürken onların yanında olmayı seçtin. Kolay değildi ve sen geri adım atmadın.",
+    "Şimdi kafan karışık, bu çok normal. Cevabı bu gece bulmak zorunda değilsin. Ama bu evi nasıl kurduğunu gördün: zevkle, akılla, sabırla. Hayatını da öyle kuracaksın. Hangi kapıdan geçersen geç, yanında olacağım.",
+    "İyi ki doğdun. İyi ki benimlesin.",
+    "{from}",
+  ],
+};
+
+/* ===================================================================== */
+const $ = s => document.querySelector(s);
+const stage = $("#stage");
+const fill = t => t.replace(/\{(\w+)\}/g, (_, k) => CONFIG[k] ?? "");
+const NAMES = {merve: CONFIG.name, ela: CONFIG.girl, marsel: CONFIG.boy, emre: CONFIG.from};
+const VB = {emre: [140, 262], merve: [120, 256], ela: [100, 182], marsel: [100, 122]};
+const PAL = [["#E9765B","Mercan"],["#F2B8C6","Pudra"],["#B7C96B","Fıstık"],["#8FB3A0","Adaçayı"],["#E0B13A","Hardal"],["#3557C9","Kobalt"],["#EFE6D6","Kum"],["#7A4B36","Kakao"],["#B9A6E0","Lila"]];
+
+let S;
+const fresh = () => ({done: {}, d: {}});
+try { S = JSON.parse(localStorage.getItem("annem11")) || fresh(); } catch (e) { S = fresh(); }
+function save(){ try { localStorage.setItem("annem11", JSON.stringify(S)); } catch (e) {} }
+
+function show(html){ stage.innerHTML = `<div class="screen">${html}</div>`; stage.scrollTop = 0; }
+function toast(msg, ms = 2200){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), ms); }
+function night(on){ document.body.classList.toggle("night", on); }
+function chr(w, h){ const [vw, vh] = VB[w]; return `<svg style="height:${h}px;width:${h*vw/vh}px" viewBox="0 0 ${vw} ${vh}"><use href="#c-${w}"/></svg>`; }
+function mix(a, b, t){ const p = h => [1,3,5].map(i => parseInt(h.slice(i, i+2), 16)); const A = p(a), B = p(b); return "#" + A.map((v, i) => Math.round(v + (B[i] - v) * t).toString(16).padStart(2, "0")).join(""); }
+function lum(h){ const [r,g,b] = [1,3,5].map(i => parseInt(h.slice(i, i+2), 16) / 255); return .3*r + .59*g + .11*b; }
+
+/* ---------- Konuşma ---------- */
+function talk(lines, next){
+  let i = 0;
+  const render = () => {
+    const [w, t] = lines[i];
+    show(`<div class="talk">
+      ${w ? `<div class="who-art">${chr(w, w === "marsel" ? 110 : 170)}</div>` : ""}
+      <div class="bubble ${w ? "" : "narr"}">${w ? `<span class="who">${NAMES[w]}</span>` : ""}${fill(t)}</div>
+      <div class="tap">dokun →</div></div>`);
+    stage.firstChild.onclick = () => { i++; i < lines.length ? render() : next(); };
+  };
+  render();
+}
+
+/* ---------- Nesneler (hepsi 100x100 kutuda çizilir) ---------- */
+let uid = 0;
+function ringPath(cx, cy, r, rim){
+  let s = "";
+  for (let i = 0; i <= 144; i++){
+    const a = i / 144 * Math.PI * 2;
+    let rr = r;
+    if (rim === "wavy") rr = r + 1.6 * Math.sin(a * 14);
+    if (rim === "scallop") rr = r - 3 + 3 * Math.abs(Math.sin(a * 9));
+    s += (i ? "L" : "M") + (cx + rr * Math.cos(a)).toFixed(2) + " " + (cy + rr * Math.sin(a)).toFixed(2);
+  }
+  return s + "Z";
+}
+function plateSVG(d){
+  const c = d.color, t = mix(c, "#ffffff", .55), id = "p" + (uid++);
+  let pat = "", rimFill = c, extra = "";
+  if (d.pattern === "check"){
+    pat = `<pattern id="${id}" width="7" height="7" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="${c}"/><rect width="3.5" height="3.5" fill="#fff" opacity=".6"/><rect x="3.5" y="3.5" width="3.5" height="3.5" fill="#fff" opacity=".6"/></pattern>`;
+    rimFill = `url(#${id})`;
+  }
+  if (d.pattern === "stripe") for (let i = 0; i < 40; i++){ const a = i / 40 * Math.PI * 2; extra += `<line x1="${50+31*Math.cos(a)}" y1="${50+31*Math.sin(a)}" x2="${50+40*Math.cos(a)}" y2="${50+40*Math.sin(a)}" stroke="#fff" stroke-opacity=".7" stroke-width="1.6"/>`; }
+  if (d.pattern === "dots") for (let i = 0; i < 16; i++){ const a = i / 16 * Math.PI * 2; extra += `<circle cx="${50+36*Math.cos(a)}" cy="${50+36*Math.sin(a)}" r="2" fill="#fff" opacity=".85"/>`; }
+  return `<defs>${pat}</defs><path d="${ringPath(51.5, 52.5, 43, d.rim)}" fill="#000" opacity=".12"/>
+    <path d="${ringPath(50, 50, 43, d.rim)}" fill="${rimFill}" stroke="${mix(c, "#000000", .25)}" stroke-width="1"/>${extra}
+    <circle cx="50" cy="50" r="29" fill="${t}" stroke="${mix(c, "#000000", .15)}" stroke-opacity=".4" stroke-width=".8"/>
+    <ellipse cx="40" cy="38" rx="10" ry="4.5" fill="#fff" opacity=".3" transform="rotate(-30 40 38)"/>`;
+}
+function clockSVG(d){
+  const c = d.color, dk = lum(c) < .5 ? "#ffffff" : "#1F2A5A", id = "c" + (uid++);
+  let shape, cx = 50, cy = 50;
+  if (d.shape === "round") shape = `<circle cx="50" cy="50" r="42"/>`;
+  if (d.shape === "squircle") shape = `<rect x="9" y="9" width="82" height="82" rx="26"/>`;
+  if (d.shape === "arch"){ shape = `<path d="M14 94 V44 A36 36 0 0 1 86 44 V94 Z"/>`; cy = 58; }
+  let face = "", marks = "";
+  if (d.face === "slices"){
+    const cols = [c, mix(c, "#ffffff", .45), "#F2B8C6", "#B7C96B"], R = 70;
+    face = cols.map((col, i) => { const a0 = i * Math.PI / 2 - Math.PI / 2, a1 = a0 + Math.PI / 2; return `<path d="M${cx} ${cy} L${cx+R*Math.cos(a0)} ${cy+R*Math.sin(a0)} A${R} ${R} 0 0 1 ${cx+R*Math.cos(a1)} ${cy+R*Math.sin(a1)} Z" fill="${col}"/>`; }).join("");
+  }
+  if (d.face === "minimal") for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2; marks += `<line x1="${cx+27*Math.cos(a)}" y1="${cy+27*Math.sin(a)}" x2="${cx+34*Math.cos(a)}" y2="${cy+34*Math.sin(a)}" stroke="${dk}" stroke-width="3.5" stroke-linecap="round"/>`; }
+  if (d.face === "dots") for (let i = 0; i < 12; i++){ const a = i * Math.PI / 6; marks += `<circle cx="${cx+31*Math.cos(a)}" cy="${cy+31*Math.sin(a)}" r="${i % 3 ? 1.8 : 3.2}" fill="${dk}"/>`; }
+  const hc = d.face === "slices" ? "#1F2A5A" : dk;
+  const hand = (deg, len, w) => { const a = (deg - 90) * Math.PI / 180; return `<line x1="${cx}" y1="${cy}" x2="${cx+len*Math.cos(a)}" y2="${cy+len*Math.sin(a)}" stroke="${hc}" stroke-width="${w}" stroke-linecap="round"/>`; };
+  // ibreler 11'i 11 geçiyor: 11.11
+  return `<defs><clipPath id="${id}">${shape}</clipPath></defs>
+    <g transform="translate(1.5,1.5)" fill="#000" opacity=".12">${shape}</g><g fill="${c}">${shape}</g>
+    <g clip-path="url(#${id})">${face}</g>${marks}${hand(335.5, 18, 3.6)}${hand(66, 28, 2.2)}
+    <circle cx="${cx}" cy="${cy}" r="2.8" fill="${hc}"/><g fill="none" stroke="${mix(c, "#000000", .25)}" stroke-width="1.5">${shape}</g>`;
+}
+const VASE = {
+  bubble:   t => t < .16 ? 8 : 8 + 27 * Math.sin(Math.PI * ((t - .16) / .84) * .94 + .06),
+  cylinder: t => t < .05 ? 21 : 19,
+  wavy:     t => 18 + 5 * Math.sin(t * Math.PI * 4.5),
+  amphora:  t => 11 + 19 * Math.sin(Math.PI * (.12 + .88 * t)),
+};
+function vaseSVG(d){
+  const f = VASE[d.form], c = d.color, id = "v" + (uid++), y0 = 30, h = 64;
+  const L = [], R = [];
+  for (let i = 0; i <= 40; i++){ const t = i / 40, y = y0 + t * h, r = f(t); L.push(`${(50-r).toFixed(2)} ${y.toFixed(2)}`); R.unshift(`${(50+r).toFixed(2)} ${y.toFixed(2)}`); }
+  const p = "M" + L.join("L") + "L" + R.join("L") + "Z";
+  let surf = "";
+  if (d.surface === "stripes") for (let y = y0 + 4; y < y0 + h; y += 8) surf += `<rect x="0" y="${y}" width="100" height="3.5" fill="#fff" opacity=".55"/>`;
+  if (d.surface === "dots") for (let y = y0 + 5, k = 0; y < y0 + h; y += 7, k++) for (let x = 12 + (k % 2) * 3.5; x < 90; x += 7) surf += `<circle cx="${x}" cy="${y}" r="1.3" fill="#fff" opacity=".75"/>`;
+  if (d.surface === "gloss") surf = `<rect x="${50 - f(.55) * .6}" y="${y0 + 12}" width="4.5" height="${h * .6}" rx="2.2" fill="#fff" opacity=".5"/>`;
+  let st = "";
+  if (d.stems === "branch") st = `<g stroke="#5f7a4a" stroke-width="1.5" fill="none"><path d="M49 32 Q42 16 30 6"/><path d="M51 32 Q58 14 72 8"/></g>
+    <g fill="#7f9a5c"><ellipse cx="34" cy="10" rx="4.5" ry="2" transform="rotate(-40 34 10)"/><ellipse cx="42" cy="20" rx="4.5" ry="2" transform="rotate(30 42 20)"/><ellipse cx="66" cy="11" rx="4.5" ry="2" transform="rotate(20 66 11)"/><ellipse cx="58" cy="21" rx="4.5" ry="2" transform="rotate(-30 58 21)"/></g>`;
+  if (d.stems === "tulip") st = `<g stroke="#5f7a4a" stroke-width="1.6"><line x1="47" y1="32" x2="40" y2="12"/><line x1="53" y1="32" x2="61" y2="14"/></g>
+    <g fill="#E9765B"><path d="M34 12 Q40 -2 46 12 Q40 16 34 12Z"/><path d="M55 14 Q61 0 67 14 Q61 18 55 14Z"/></g>`;
+  return `<defs><clipPath id="${id}"><path d="${p}"/></clipPath></defs>${st}
+    <ellipse cx="52" cy="${y0 + h + 1}" rx="22" ry="3" fill="#000" opacity=".12"/>
+    <path d="${p}" fill="${c}"/><g clip-path="url(#${id})">${surf}</g>
+    <path d="${p}" fill="none" stroke="${mix(c, "#000000", .25)}" stroke-width="1"/>
+    <ellipse cx="50" cy="${y0}" rx="${f(0)}" ry="2" fill="${mix(c, "#000000", .3)}"/>`;
+}
+function candleSVG(d){
+  const c = d.color, dk = mix(c, "#000000", .2), hc = mix(c, "#ffffff", .5);
+  let holder = "", front = "", base = 90, body = "", top;
+  if (d.holder === "ceramic"){ holder = `<ellipse cx="50" cy="92" rx="24" ry="5" fill="${hc}" stroke="${dk}" stroke-width=".8"/><rect x="37" y="84" width="26" height="8" rx="3" fill="${hc}"/>`; base = 85; }
+  if (d.holder === "brass"){ holder = `<ellipse cx="50" cy="93" rx="16" ry="4" fill="#C9A14A"/><rect x="47" y="72" width="6" height="21" fill="#C9A14A"/><ellipse cx="50" cy="72" rx="12" ry="3.5" fill="#D9B45A"/>`; base = 71; }
+  if (d.holder === "glass"){ front = `<path d="M33 52 L33 88 Q33 95 40 95 L60 95 Q67 95 67 88 L67 52" fill="#cfe6f0" fill-opacity=".3" stroke="#8fb3c4" stroke-width="1.2"/><ellipse cx="50" cy="52" rx="17" ry="3" fill="none" stroke="#8fb3c4" stroke-width="1.2"/>`; base = 93; }
+  if (d.form === "twist"){
+    for (let i = 7; i >= 0; i--) body += `<ellipse cx="${50 + (i % 2 ? 2 : -2)}" cy="${base - 4 - i * 5.2}" rx="7" ry="3.6" fill="${c}" stroke="${dk}" stroke-width=".6"/>`;
+    top = base - 4 - 7 * 5.2 - 3;
+  }
+  if (d.form === "bubble"){
+    for (let r = 2; r >= 0; r--) for (let k = 0; k < 3; k++) body += `<circle cx="${40 + k * 10}" cy="${base - 5 - r * 9}" r="5.4" fill="${c}" stroke="${dk}" stroke-width=".6"/>`;
+    top = base - 28;
+  }
+  if (d.form === "taper"){ body = `<rect x="46" y="${base - 46}" width="8" height="46" rx="3" fill="${c}" stroke="${dk}" stroke-width=".6"/>`; top = base - 46; }
+  const flame = `<line x1="50" y1="${top}" x2="50" y2="${top - 3}" stroke="#333" stroke-width="1"/>
+    <circle cx="50" cy="${top - 9}" r="11" fill="url(#glow)"/><path d="M50 ${top - 15} Q55 ${top - 7} 50 ${top - 3} Q45 ${top - 7} 50 ${top - 15}Z" fill="url(#flame)"/>`;
+  return holder + body + flame + front;
+}
+function lampSVG(on, col = CONFIG.gift.lampColor){
+  return `${on ? `<circle cx="50" cy="40" r="50" fill="url(#glow)"/>` : ""}
+    <path d="M20 46 Q20 14 50 14 Q80 14 80 46 Z" fill="${col}" stroke="${mix(col, "#000000", .25)}" stroke-width="1"/>
+    <rect x="47" y="46" width="6" height="40" fill="${col}"/><ellipse cx="50" cy="88" rx="17" ry="5" fill="${col}"/>
+    ${on ? `<ellipse cx="50" cy="47" rx="26" ry="3" fill="#FFF3C4"/>` : ""}`;
+}
+// Hediye ekranı: masa, üstünde yanan lamba ve oyunda tasarladığı tabak
+function deskSVG(){
+  const plate = S.d.plate ? `<svg x="40" y="44" width="22" height="22" viewBox="0 0 100 100">${plateSVG(S.d.plate)}</svg>` : "";
+  return `<rect x="8" y="66" width="84" height="5" rx="2" fill="#B98A5E"/>
+    <rect x="12" y="71" width="4" height="24" fill="#8d6440"/><rect x="84" y="71" width="4" height="24" fill="#8d6440"/>
+    <svg x="58" y="30" width="38" height="38" viewBox="0 0 100 100">${lampSVG(true)}</svg>
+    ${plate}
+    <rect x="14" y="58" width="20" height="8" rx="1" fill="#FFF9EE" stroke="#1F2A5A" stroke-width=".8" transform="rotate(-6 24 62)"/>
+    <text x="24" y="63.5" font-size="3.2" text-anchor="middle" font-family="Nunito" font-weight="800" fill="#1F2A5A" transform="rotate(-6 24 62)">atölye</text>`;
+}
+function posterSVG(m){
+  const cols = ["#E9765B", "#3557C9", "#B7C96B", "#F2B8C6"];
+  const bars = m.scores.map(([n, s], i) => `<text x="16" y="${36 + i * 13}" font-size="5.5" font-family="Nunito" font-weight="800" fill="#1F2A5A">${n}</text>
+    <rect x="16" y="${38 + i * 13}" width="${(s / 100) * 66}" height="5" rx="2.5" fill="${cols[i % 4]}"/>`).join("");
+  return `<rect x="8" y="4" width="84" height="92" fill="#1F2A5A"/><rect x="11" y="7" width="78" height="86" fill="#FFF9EE"/>
+    <text x="16" y="22" font-size="9" font-family="Fraunces,serif" font-weight="800" fill="#1F2A5A">Pusulam</text>${bars}
+    <text x="16" y="89" font-size="4.5" font-family="Nunito" fill="#1F2A5A" opacity=".6">10.11 · gece</text>`;
+}
+
+/* ---------- Ev ---------- */
+function roomSVG({dim = false, lampOn = false, family = false, lampId = "", lamp = false} = {}){
+  const D = S.d;
+  const box = (x, y, w, h, inner) => inner
+    ? `<svg x="${x}" y="${y}" width="${w}" height="${h}" viewBox="0 0 100 100">${inner}</svg>`
+    : `<rect x="${x + w * .18}" y="${y + h * .18}" width="${w * .64}" height="${h * .64}" rx="8" fill="none" stroke="#c4b294" stroke-width="1.5" stroke-dasharray="4 4"/>`;
+  const allDone = CH.every(c => S.done[c.id]);
+  const person = (w, x, h) => { const [vw, vh] = VB[w]; return `<svg x="${x}" y="${270 - h}" width="${h * vw / vh}" height="${h}" viewBox="0 0 ${vw} ${vh}"><use href="#c-${w}"/></svg>`; };
+  return `<svg viewBox="0 0 360 280">
+    <rect width="360" height="210" fill="#F7EFE2"/><rect y="210" width="360" height="70" fill="#D8B98F"/>
+    ${[230, 250].map(y => `<line x1="0" y1="${y}" x2="360" y2="${y}" stroke="#c9a77a" stroke-width="1"/>`).join("")}
+    <rect x="20" y="28" width="72" height="120" rx="36" fill="${dim ? "#27315f" : "#cfe3ee"}" stroke="#fff" stroke-width="5"/>
+    ${dim ? `<circle cx="66" cy="62" r="8" fill="#f3efd2"/><circle cx="62" cy="60" r="8" fill="#27315f"/>` : ""}
+    ${box(108, 22, 76, 96, D.matrix && posterSVG(D.matrix))}
+    ${box(206, 28, 62, 62, D.clock && clockSVG(D.clock))}
+    <rect x="118" y="160" width="226" height="46" rx="5" fill="#B98A5E"/><rect x="118" y="160" width="226" height="6" fill="#a8794f"/>
+    <line x1="193" y1="168" x2="193" y2="204" stroke="#a8794f"/><line x1="268" y1="168" x2="268" y2="204" stroke="#a8794f"/>
+    <rect x="126" y="206" width="5" height="12" fill="#8d6440"/><rect x="331" y="206" width="5" height="12" fill="#8d6440"/>
+    ${D.plate ? `<rect x="146" y="152" width="22" height="8" rx="2" fill="#8d6440"/>` : ""}${box(130, 104, 54, 54, D.plate && plateSVG(D.plate))}
+    ${box(186, 96, 66, 66, D.vase && vaseSVG(D.vase))}
+    ${box(246, 104, 56, 56, D.candle && candleSVG(D.candle))}
+    <g id="${lampId}" style="${lampId ? "cursor:pointer" : ""}">${box(294, 102, 58, 58, lamp ? lampSVG(lampOn) : "")}</g>
+    ${!allDone ? `<rect x="22" y="196" width="46" height="34" fill="#c8a06a" stroke="#a37d4c"/><rect x="40" y="170" width="38" height="28" fill="#d4ae78" stroke="#a37d4c"/><line x1="22" y1="206" x2="68" y2="206" stroke="#a37d4c"/>` : ""}
+    ${family ? person("emre", 6, 140) + person("merve", 62, 136) + person("ela", 120, 100) + person("marsel", 168, 64) : ""}
+    ${dim && !lampOn ? `<rect width="360" height="280" fill="#0d1330" opacity=".55" pointer-events="none"/>` : ""}
+    ${lampOn ? `<rect width="360" height="280" fill="#ffcf7a" opacity=".12" pointer-events="none"/>` : ""}
+  </svg>`;
+}
+
+/* ---------- Tasarım ekranı ---------- */
+function designer({kicker, title, text, key, rows, render, next}){
+  const d = S.d[key] ? {...S.d[key]} : Object.fromEntries(rows.map(r => [r.k, r.opts[0][0]]));
+  show(`<p class="kicker">${kicker}</p><h2>${title}</h2><p class="muted">${text}</p>
+    <div class="preview"><svg viewBox="0 0 100 100" id="pv"></svg></div>
+    ${rows.map(r => `<div class="row"><span class="rl">${r.label}</span><div class="opts">${r.opts.map(([v, l]) => r.swatch
+      ? `<button class="sw" data-k="${r.k}" data-v="${v}" style="background:${v}" aria-label="${l}"></button>`
+      : `<button class="op" data-k="${r.k}" data-v="${v}">${l}</button>`).join("")}</div></div>`).join("")}
+    <button class="btn" id="ok">Eve yerleştir ✓</button>`);
+  const draw = () => {
+    $("#pv").innerHTML = render(d);
+    stage.querySelectorAll("[data-k]").forEach(b => b.classList.toggle("sel", b.dataset.v === d[b.dataset.k]));
+  };
+  stage.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { d[b.dataset.k] = b.dataset.v; draw(); });
+  $("#ok").onclick = () => { S.d[key] = d; save(); next(); };
+  draw();
+}
+const COLOR_ROW = {k: "color", label: "Renk", swatch: true, opts: PAL};
+
+/* ---------- Bölümler ---------- */
+const CH = [
+  {id: "ch1", n: "Sofra",  sub: "Tabak",        run: ch1},
+  {id: "ch2", n: "Düzen",  sub: "Saat",         run: ch2},
+  {id: "ch3", n: "Merak",  sub: "Vazo",         run: ch3},
+  {id: "ch4", n: "Sabır",  sub: "Mum",          run: ch4},
+  {id: "ch5", n: "Pusula", sub: "Duvar posteri", run: ch5},
+];
+function finish(id){ S.done[id] = true; save(); confetti(70); hub(); }
+
+function intro(){
+  night(false);
+  show(`<div class="cal"><div class="mo">KASIM</div><div class="day">10</div></div>
+    <h1>Annem Büyüyünce</h1><div class="stripes" style="width:160px"></div>
+    <p class="muted">${CONFIG.name} için, ${CONFIG.from}'den.<br>Kaybetmek yok, acele yok. Yaklaşık yirmi dakika.</p>
+    <button class="btn" id="go">Başla</button>`);
+  $("#go").onclick = () => Object.keys(S.done).length ? hub() : prologue();
+}
+
+function prologue(){
+  talk([
+    [null, "10 Kasım gecesi. İstanbul'da, hâlâ yeni sayılan bir ev. Koliler köşede, açılmayı bekliyor."],
+    ["ela", "Anne, ödevim var. “Büyüyünce ne olmak istiyorsun?” diye soruyorlar."],
+    ["merve", "Sen ne yazacaksın peki?"],
+    ["ela", "Ben biliyorum zaten. Asıl ben sana soracağım: <em style='font-weight:800'>sen büyüyünce ne olacaksın?</em>"],
+    ["merve", "Ben büyüdüm ki Ela."],
+    ["ela", "Ama ne olacağını bilmiyorsun. Yüzünden anlıyorum."],
+    [null, "Haklı. Kurumsal mı, aile işi mi, yeni bir şey mi? İstanbul mu, Ankara mı, bir gün Londra mı? Cevap bu gece çıkmayabilir. Ama bir yerden başlanabilir."],
+    ["ela", "O zaman şöyle yapalım: bu evi birlikte kuralım. Her eşyayı sen tasarla. Ev bitince ödevimin cevabı da bulunur."],
+    ["marsel", "Ba!"],
+    [null, "Beş brief. Beş eşya. Bir ev."],
+  ], hub);
+}
+
+function hub(){
+  night(false);
+  const next = CH.findIndex(c => !S.done[c.id]);
+  show(`<p class="kicker">Ev · 10 Kasım gecesi</p>
+    <div class="room">${roomSVG()}</div>
+    <div class="list">${CH.map((c, i) => {
+      const cls = S.done[c.id] ? "done" : i === next ? "next" : "locked";
+      return `<button class="stop ${cls}" data-i="${i}"><span class="n">${S.done[c.id] ? "✓" : "0" + (i + 1)}</span><span style="flex:1">Brief ${i + 1} · ${c.n}<small>${c.sub}</small></span></button>`;
+    }).join("")}
+    ${next === -1 ? `<button class="btn" id="fin">Son parça →</button>` : ""}</div>
+    <button class="reset" id="rs">baştan başla</button>`);
+  stage.querySelectorAll(".stop").forEach(b => b.onclick = () => {
+    const i = +b.dataset.i;
+    if (next !== -1 && i > next) return toast("Sırayla gidelim 🙂");
+    CH[i].run();
+  });
+  if (next === -1) $("#fin").onclick = finale;
+  $("#rs").onclick = () => { if (confirm("Her şey silinip baştan başlansın mı?")){ S = fresh(); save(); intro(); } };
+}
+
+/* 1 · Sofra */
+function ch1(){
+  talk([
+    [null, "Brief 01 · Sofra"],
+    ["ela", "Kopenhag'dan aldığın tabakları hatırlıyor musun? Hâlâ en sevdiğin onlar."],
+    [null, "İyi bir tabak sadece yemek koymak için değildir. Her gün elinin değdiği, sessizce iyi hissettiren bir şeydir. Ev, en çok sofrada belli olur."],
+  ], () => designer({
+    kicker: "Brief 01 · Sofra", title: "Tabağını tasarla", text: "Dört kişilik bir sofra için. Biri senin, biri Emre'nin, ikisi küçük ellerin.",
+    key: "plate",
+    rows: [
+      {k: "rim", label: "Kenar", opts: [["plain","Düz"],["wavy","Dalgalı"],["scallop","Fistolu"]]},
+      {...COLOR_ROW, opts: PAL},
+      {k: "pattern", label: "Desen", opts: [["plain","Sade"],["stripe","Çizgili kenar"],["check","Kareli"],["dots","Puantiye"]]},
+    ],
+    render: plateSVG,
+    next: whereHome,
+  }));
+}
+function whereHome(){
+  const ans = {
+    ist: "Sevdiğin şehir. Kalabalık, yorucu, akrabalar uzakta... ama sen onu seviyorsun, bu az şey değil.",
+    ank: "Aile yakında, hayat daha kolay. Sevmesen de bunun da bir değeri var; bunu bilmek de olgunluk.",
+    ldn: "Hayal listesinin ilk satırı. Hayaller ertelenebilir, silinmez. Sofra oraya da taşınır.",
+    dk:  "Bilmemek de bir cevap. Şimdilik.",
+  };
+  show(`<p class="kicker">Brief 01 · Sofra</p><h2>Bu sofra nerede kurulsun?</h2>
+    <div class="preview" style="width:140px"><svg viewBox="0 0 100 100">${plateSVG(S.d.plate)}</svg></div>
+    <div class="list">
+      <button class="stop" data-a="ist">İstanbul</button><button class="stop" data-a="ank">Ankara</button>
+      <button class="stop" data-a="ldn">Londra</button><button class="stop" data-a="dk">Bilmiyorum</button>
+    </div>`);
+  stage.querySelectorAll("[data-a]").forEach(b => b.onclick = () => talk([
+    [null, ans[b.dataset.a]],
+    [null, "Ama fark ettin mi? Sofrayı kurunca soru değişiyor. Ev bir şehir değil. Dört tabak, aynı masa."],
+  ], () => finish("ch1")));
+}
+
+/* 2 · Düzen */
+function ch2(){
+  talk([
+    [null, "Brief 02 · Düzen"],
+    [null, "Tabakların üretime giriyor. Ama hat tıkanmış, sipariş yetişmiyor."],
+    ["ela", "Bunu sen bilirsin anne, sen mühendissin!"],
+  ], balance);
+}
+function balance(){
+  const T = [["Çamur hazırlama",4],["Tornada şekil",6],["Kenar rötuşu",2],["Kurutma",5],["Desen",4],["Sırlama",3],["Fırın",7],["Kalite & paket",5]];
+  const TARGET = 12, cuts = [];
+  let solved = false;
+  const render = () => {
+    const sorted = [...cuts].sort((a, b) => a - b);
+    const st = T.map((_, i) => sorted.filter(c => c < i).length);
+    const sums = [0, 0, 0]; T.forEach(([, t], i) => sums[st[i]] += t);
+    const cycle = Math.max(...sums);
+    solved = cuts.length === 2 && cycle === TARGET;
+    show(`<p class="kicker">Brief 02 · Düzen</p><h2>Hat dengeleme</h2>
+      <p class="muted">8 iş, sıralı. 3 istasyon. En uzun istasyon çevrim süresini belirler. Hedef: <b>${TARGET} dk</b>.<br>İşlerin arasına dokunarak istasyon sınırlarını koy.</p>
+      <div style="width:100%">${T.map(([n, t], i) => `<div class="task st${st[i]}"><span>${n}</span><i>${t} dk</i></div>${i < T.length - 1 ? `<button class="gap ${cuts.includes(i) ? "cut" : ""}" data-g="${i}"><span>${cuts.includes(i) ? "✂ sınır" : "+"}</span></button>` : ""}`).join("")}</div>
+      <div class="bars">${sums.map((s, i) => `<div class="bar"><span style="width:52px">İst. ${i + 1}</span><span class="tr"><i class="${s > TARGET ? "over" : ""}" style="width:${Math.min(100, s / 20 * 100)}%"></i><span class="tgt" style="left:${TARGET / 20 * 100}%"></span></span><span style="width:42px">${s} dk</span></div>`).join("")}</div>
+      <p><b>Çevrim süresi: ${cuts.length === 2 ? cycle + " dk" : "–"}</b></p>
+      ${solved ? `<button class="btn" id="ok">Hat aktı ✓</button>` : ""}`);
+    stage.querySelectorAll("[data-g]").forEach(b => b.onclick = () => {
+      const g = +b.dataset.g, k = cuts.indexOf(g);
+      if (k >= 0) cuts.splice(k, 1);
+      else { if (cuts.length === 2) cuts.shift(); cuts.push(g); }
+      render();
+    });
+    if (solved){ confetti(40); $("#ok").onclick = afterBalance; }
+  };
+  render();
+}
+function afterBalance(){
+  talk([
+    [null, "Birkaç dokunuş. Çünkü sen bunu yıllarca yaptın: karmaşık bir şeye bakıp akışı görmek."],
+    [null, "Buna hep “iş” dedin, “yaratıcı değil” dedin. Ama zamanı tasarlamak da bir tasarım. Her sabah iki çocuğu, bir evi, bir hayatı aynı hatta dengeleyen de sensin."],
+  ], () => designer({
+    kicker: "Brief 02 · Düzen", title: "Duvar saatini tasarla", text: "İbreler 11'i 11 geçiyor. Bu ay, bu gün senin.",
+    key: "clock",
+    rows: [
+      {k: "shape", label: "Form", opts: [["round","Yuvarlak"],["squircle","Yumuşak kare"],["arch","Kemer"]]},
+      {...COLOR_ROW, opts: PAL},
+      {k: "face", label: "Kadran", opts: [["minimal","Minimal"],["dots","Noktalar"],["slices","Renk dilimleri"]]},
+    ],
+    render: clockSVG,
+    next: () => finish("ch2"),
+  }));
+}
+
+/* 3 · Merak */
+function ch3(){
+  talk([
+    [null, "Brief 03 · Merak"],
+    [null, "Her tasarımcının bir dili vardır. Kimse öğretmez; sokaklarda, vitrinlerde, kendi evinde yıllarca toplanır."],
+  ], words);
+}
+function words(){
+  const W = ["Organik","Renkli","Minimal","Oyunbaz","Sıcak","Grafik","Yumuşak","Cesur","Zamansız"];
+  const sel = [];
+  const render = () => {
+    show(`<p class="kicker">Brief 03 · Merak</p><h2>Sana en çok benzeyen üç kelime</h2>
+      <div class="words">${W.map(w => `<button class="word ${sel.includes(w) ? "sel" : ""}" data-w="${w}">${w}</button>`).join("")}</div>
+      <button class="btn" id="ok" ${sel.length === 3 ? "" : "disabled"}>Devam →</button>`);
+    stage.querySelectorAll("[data-w]").forEach(b => b.onclick = () => {
+      const k = sel.indexOf(b.dataset.w);
+      if (k >= 0) sel.splice(k, 1); else if (sel.length < 3) sel.push(b.dataset.w); else toast("Üç tane yeter, birini bırak");
+      render();
+    });
+    $("#ok").onclick = () => { if (sel.length !== 3) return; S.d.words = [...sel]; save();
+      talk([[null, `Senin dilin: <b>${sel.join(", ").toLocaleLowerCase("tr")}</b>. Kopenhag'da o tabakları seçerken de bu dil konuşuyordu.`]], vase); };
+  };
+  render();
+}
+function vase(){
+  designer({
+    kicker: "Brief 03 · Merak", title: "Vazonu tasarla", text: `${S.d.words ? S.d.words.join(" · ") : ""}`,
+    key: "vase",
+    rows: [
+      {k: "form", label: "Silüet", opts: [["bubble","Balon"],["cylinder","Silindir"],["wavy","Dalgalı"],["amphora","Amfora"]]},
+      {...COLOR_ROW, opts: PAL},
+      {k: "surface", label: "Yüzey", opts: [["plain","Mat"],["gloss","Parlak"],["stripes","Çizgili"],["dots","Noktalı"]]},
+      {k: "stems", label: "İçinde", opts: [["none","Boş"],["branch","Dal"],["tulip","Lale"]]},
+    ],
+    render: vaseSVG,
+    next: () => talk([
+      [null, "Bir zamanlar sıfırdan bir marka kurdun. Sonra bırakmaya karar verdin."],
+      [null, "Belki onu yarım kalmış bir şey olarak hatırlıyorsun. Ama bir şeyi kurmak da, bırakmaya karar vermek de cesaret ister. Geriye kalan şey gitmedi: güzel olana bakan o göz hâlâ sende."],
+    ], () => finish("ch3")),
+  });
+}
+
+/* 4 · Sabır */
+function ch4(){
+  night(true);
+  talk([
+    [null, "Brief 04 · Sabır"],
+    [null, "Gece üç. Ev karanlık."],
+    ["marsel", "Me... me!"],
+    [null, "Sen nefes al, o da sakinleşsin."],
+  ], breath);
+}
+function breath(){
+  const MEM = [
+    `${CONFIG.girl}'nın kendi boyadığı o tişört: bir çiçek ve kocaman “GIRL POWER”. Kimden öğrendi sence?`,
+    `${CONFIG.boy}'in elinde mısır, yüzünde o gülüş. O gülüşü senden aldı. Bütün yorgunluğa değen o bir saniye.`,
+    "İki kez işini bırakıp onların yanında olmayı seçtin. Kimse alkışlamadı belki. Ama onlar hatırlayacak.",
+  ];
+  show(`<p class="kicker" style="color:#ecebff">Brief 04 · Sabır</p>
+    <div>${chr("marsel", 90)}</div>
+    <div class="breath" id="br"><div class="ring"></div><div class="orb" id="orb"></div><span class="lbl" id="lbl">basılı tut</span></div>
+    <p class="memory" id="mem">Basılı tutarken nefes al. Işık dolunca bırak ve ver.</p>
+    <p class="muted" id="cnt">0 / 3</p>`);
+  const br = $("#br"), orb = $("#orb"), lbl = $("#lbl");
+  let p = 0, phase = "in", holding = false, n = 0, last = performance.now(), alive = true;
+  br.onpointerdown = e => { e.preventDefault(); holding = true; };
+  br.onpointerup = br.onpointerleave = br.onpointercancel = () => holding = false;
+  br.oncontextmenu = e => e.preventDefault();
+  const timer = setInterval(() => tick(performance.now()), 40);
+  const tick = now => {
+    if (!alive || !document.body.contains(br)){ clearInterval(timer); return; }
+    const dt = Math.min(.5, (now - last) / 1000); last = now;
+    if (phase === "in"){
+      p = holding ? Math.min(1, p + dt / 3.2) : Math.max(0, p - dt / 2);
+      lbl.textContent = holding ? "nefes al..." : "basılı tut";
+      if (p >= 1){ phase = "full"; lbl.textContent = "şimdi bırak"; }
+    } else if (phase === "full"){
+      if (!holding) phase = "out";
+    } else {
+      p = Math.max(0, p - dt / 3);
+      lbl.textContent = "nefes ver...";
+      if (p <= 0){
+        $("#mem").textContent = MEM[n]; n++; $("#cnt").textContent = `${n} / 3`;
+        phase = "in";
+        if (n === 3){
+          alive = false; clearInterval(timer);
+          lbl.textContent = "uyudu";
+          // son anıyı okuyabilsin diye otomatik geçmiyoruz
+          $("#cnt").insertAdjacentHTML("afterend", `<button class="btn" id="slept">Devam →</button>`);
+          $("#slept").onclick = () => talk([[null, `${CONFIG.girl} ve ${CONFIG.boy} uyudu. Ev sessiz. Bir mum yak, bu saat de senin.`]], candle);
+          return;
+        }
+      }
+    }
+    orb.style.transform = `scale(${.35 + .65 * p})`;
+  };
+}
+function candle(){
+  night(false);
+  designer({
+    kicker: "Brief 04 · Sabır", title: "Mumunu tasarla", text: "Evin sıcaklığı. Gece üçte bile.",
+    key: "candle",
+    rows: [
+      {k: "form", label: "Form", opts: [["twist","Burgulu"],["bubble","Kabarcık"],["taper","İnce uzun"]]},
+      {...COLOR_ROW, opts: PAL},
+      {k: "holder", label: "Şamdan", opts: [["ceramic","Seramik"],["brass","Pirinç"],["glass","Cam"]]},
+    ],
+    render: candleSVG,
+    next: () => finish("ch4"),
+  });
+}
+
+/* 5 · Pusula */
+function ch5(){
+  talk([
+    [null, "Brief 05 · Pusula"],
+    [null, "Son brief'i en iyi sen bilirsin. Yıllarca başkalarının kararları için kurdun. Bu sefer kendin için: bir karar matrisi."],
+    ["ela", "Ben de yardım ederim! Ama puanları sen ver."],
+    [null, "Bu bir sınav değil. Doğru cevap yok. Sadece bu gecenin fotoğrafı."],
+  ], weights);
+}
+const CRIT = ["Gelir", "Yaratıcılık", "Aile zamanı", "İstikrar", "Şehir & hayaller"];
+const OPTS = ["Kurumsal", "Aile işi", "İçerik üretimi", "Tasarım"];
+function dots(name, val){ return `<span class="dots">${[1,2,3,4,5].map(v => `<button data-n="${name}" data-v="${v}" class="${v <= val ? "on" : ""}"></button>`).join("")}</span>`; }
+function weights(){
+  const w = S.d.mw || CRIT.map(() => 3);
+  const render = () => {
+    show(`<p class="kicker">Brief 05 · Pusula</p><h2>Senin için ne kadar önemli?</h2><p class="muted">1: az · 5: çok</p>
+      <div class="card">${CRIT.map((c, i) => `<div class="mrow"><span>${c}</span>${dots("w" + i, w[i])}</div>`).join("")}</div>
+      <button class="btn" id="ok">Devam →</button>`);
+    stage.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { w[+b.dataset.n.slice(1)] = +b.dataset.v; render(); });
+    $("#ok").onclick = () => { S.d.mw = w; save(); ratings(); };
+  };
+  render();
+}
+function ratings(){
+  const r = S.d.mr || Object.fromEntries(OPTS.map(o => [o, CRIT.map(() => 3)]));
+  const render = () => {
+    const y = stage.scrollTop;
+    show(`<p class="kicker">Brief 05 · Pusula</p><h2>Her yol, her kritere ne kadar uyuyor?</h2><p class="muted">Kendi gözünle puanla.</p>
+      ${OPTS.map((o, oi) => `<div class="card mcard"><h3>${o}</h3>${CRIT.map((c, ci) => `<div class="mrow"><span>${c}</span>${dots(oi + "_" + ci, r[o][ci])}</div>`).join("")}</div>`).join("")}
+      <button class="btn" id="ok">Tabloyu hesapla →</button>`);
+    stage.scrollTop = y;
+    stage.querySelectorAll("[data-n]").forEach(b => b.onclick = () => { const [oi, ci] = b.dataset.n.split("_").map(Number); r[OPTS[oi]][ci] = +b.dataset.v; render(); });
+    $("#ok").onclick = () => { S.d.mr = r; save(); result(); };
+  };
+  render();
+}
+function result(){
+  const w = S.d.mw, r = S.d.mr, tot = w.reduce((a, b) => a + b, 0) * 5;
+  const scores = OPTS.map(o => [o, Math.round(r[o].reduce((s, v, i) => s + v * w[i], 0) / tot * 100)]).sort((a, b) => b[1] - a[1]);
+  const topW = Math.max(...w), topCrit = CRIT.filter((_, i) => w[i] === topW);
+  const tie = scores[0][1] === scores[1][1];
+  S.d.matrix = {scores}; save();
+  show(`<p class="kicker">Brief 05 · Pusula</p><h2>Bu gecenin tablosu</h2>
+    <div class="card res">${scores.map(([n, s]) => `<div class="bar"><span style="width:110px">${n}</span><span class="tr"><i style="width:${s}%"></i></span><span style="width:40px">${s}</span></div>`).join("")}</div>
+    <div class="card"><p>En çok önem verdiğin: <b>${topCrit.join(", ").toLocaleLowerCase("tr")}</b>.</p>
+    <p>${tie ? `Öne çıkan iki yol başa baş: <b>${scores[0][0]}</b> ve <b>${scores[1][0]}</b>. Belki cevap ikisinin arasında bir yerde.` : `Bu tabloya göre öne çıkan: <b>${scores[0][0]}</b>.`}</p>
+    <p class="muted">Bu bir karar değil. Yarın değişebilir, değişmesi de normal. Ama artık bir pusulan var ve onu sen kalibre ettin.</p></div>
+    <button class="btn" id="ok">Duvara as ✓</button>`);
+  $("#ok").onclick = () => finish("ch5");
+}
+
+/* ---------- Final ---------- */
+function finale(){
+  night(true);
+  show(`<p class="kicker" style="color:#ecebff">Ev</p><h2>Ev kuruldu. Bir şey eksik.</h2>
+    <div class="room">${roomSVG({dim: true, lampId: "lamp", lamp: true})}</div>
+    <p class="muted">Lambaya dokun.</p>`);
+  $("#lamp").onclick = () => {
+    night(false);
+    show(`<div class="room">${roomSVG({lampOn: true, family: true, lamp: true})}</div><p class="muted">dokun →</p>`);
+    confetti(80);
+    stage.firstChild.onclick = () => talk([
+      ["ela", "Anne! Ödevimin cevabını buldum."],
+      ["merve", "Neymiş?"],
+      ["ela", "Annem mühendis oldu. Patron oldu. İki kere anne oldu. Bu evi de tasarladı."],
+      ["ela", "Büyüyünce ne mi olacak? Ne isterse o. Çünkü hepsini yapabiliyor."],
+      ["marsel", "Ba-ba!"],
+      ["emre", `İyi ki doğdun ${CONFIG.name}.`],
+    ], letter);
+  };
+}
+function letter(){
+  show(`<div class="card letter"><h2 style="text-align:center">Bir not</h2><div class="stripes"></div>
+    ${CONFIG.letter.map(l => `<p>${fill(l)}</p>`).join("")}</div>
+    <button class="btn" id="ok">Takvime bak →</button>`);
+  $("#ok").onclick = calendar;
+}
+function calendar(){
+  show(`<div class="cal"><div class="mo">KASIM</div><div class="day" id="day">10</div></div>
+    <h2 id="ct">Gece yarısı oldu.</h2>
+    <div id="gs" style="display:none"><div class="gift" id="gift">🎁</div><p class="muted" id="gh">Kutuya dokun</p></div>`);
+  setTimeout(() => {
+    const d = $("#day"); d.classList.add("turn");
+    setTimeout(() => { d.textContent = "11"; $("#ct").textContent = "11 Kasım. İyi ki doğdun!"; confetti(120); }, 450);
+    setTimeout(() => { $("#gs").style.display = "block"; }, 1600);
+  }, 900);
+  let taps = 0;
+  stage.addEventListener("click", e => {
+    if (e.target.id !== "gift") return;
+    const g = e.target; taps++;
+    g.classList.remove("shake"); void g.offsetWidth; g.classList.add("shake");
+    $("#gh").textContent = ["Biraz daha...", "Neredeyse!", ""][Math.min(2, taps - 1)];
+    if (taps === 3) setTimeout(reveal, 450);
+  });
+}
+function reveal(){
+  const G = CONFIG.gift;
+  show(`<div class="card" style="text-align:center"><p class="muted">Doğum günü hediyen</p><h2>${G.title}</h2><div class="stripes"></div>
+    ${G.image ? `<img src="${G.image}" alt="" style="width:100%;border-radius:14px;border:3px solid var(--ink)">` : `<div class="preview" style="margin:6px auto;width:220px"><svg viewBox="0 0 100 100">${deskSVG()}</svg></div>`}
+    <p>${fill(G.text)}</p><h3 style="margin-top:14px">${G.finalLine}</h3>
+    <p class="muted">${CONFIG.from} · 11.11</p></div>`);
+  confetti(260);
+}
+
+/* ---------- Konfeti ---------- */
+const cf = $("#confetti"), cx = cf.getContext("2d"); let parts = [], cfOn = false;
+function confetti(n){
+  cf.width = innerWidth; cf.height = innerHeight;
+  const cols = ["#F28AC9","#8CC63F","#1F2A5A","#ffffff","#E0B13A","#E9765B"];
+  for (let i = 0; i < n; i++) parts.push({x: innerWidth / 2, y: innerHeight / 3, vx: (Math.random() - .5) * 14, vy: Math.random() * -12 - 3, r: Math.random() * 6 + 4, c: cols[i % cols.length], a: Math.random() * 6, life: 1});
+  if (!cfOn){ cfOn = true; requestAnimationFrame(cfStep); }
+}
+function cfStep(){
+  cx.clearRect(0, 0, cf.width, cf.height);
+  for (const p of parts){ p.vy += .35; p.x += p.vx; p.y += p.vy; p.a += .2; p.life -= .006;
+    cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.globalAlpha = Math.max(0, p.life); cx.fillStyle = p.c; cx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); cx.restore(); }
+  parts = parts.filter(p => p.life > 0 && p.y < cf.height + 20);
+  if (parts.length) requestAnimationFrame(cfStep); else { cfOn = false; cx.clearRect(0, 0, cf.width, cf.height); }
+}
+
+/* ---------- Başlangıç ----------
+   Test için: ?reset  (her şeyi siler)
+              ?fill   (tüm bölümleri örnek tasarımlarla bitmiş sayar)
+              ?go=ch3 | hub | finale | calendar  (doğrudan o ekran) */
+const q = new URLSearchParams(location.search);
+if (q.has("reset")){ S = fresh(); save(); }
+if (q.has("fill")){
+  S.d.plate = {rim: "scallop", color: "#E9765B", pattern: "check"};
+  S.d.clock = {shape: "arch", color: "#B7C96B", face: "dots"};
+  S.d.vase = {form: "bubble", color: "#F2B8C6", surface: "stripes", stems: "branch"};
+  S.d.candle = {form: "twist", color: "#3557C9", holder: "brass"};
+  S.d.matrix = {scores: [["Tasarım", 78], ["Kurumsal", 64], ["İçerik üretimi", 60], ["Aile işi", 52]]};
+  CH.forEach(c => S.done[c.id] = true); save();
+}
+const go = q.get("go");
+if (go){ const c = CH.find(c => c.id === go); c ? c.run() : ({hub, finale, calendar, prologue}[go] || intro)(); }
+else intro();
+</script>
+</body>
+</html>
