@@ -418,11 +418,17 @@ function lampSVG(on, col = CONFIG.gift.lampColor){
     <g stroke="${edge}" stroke-width=".25">${shade}</g>
     <ellipse cx="50" cy="14" rx="8" ry="3.4" fill="#C89B6A"/><ellipse cx="50" cy="12.6" rx="6.6" ry="2.4" fill="#DDB585"/>`;
 }
-// Hediye ekranı: masa, üstünde yanan lamba ve oyunda tasarladığı tabak
+// Hediye ekranı: LISABO masa (açık dişbudak, ince tabla, ortada tutamaksız çekmece,
+// dışa açılan sivri ayaklar), üstünde yanan lamba ve oyunda tasarladığı tabak
 function deskSVG(){
   const plate = S.d.plate ? `<svg x="40" y="44" width="22" height="22" viewBox="0 0 100 100">${plateSVG(S.d.plate)}</svg>` : "";
-  return `<rect x="8" y="66" width="84" height="5" rx="2" fill="#B98A5E"/>
-    <rect x="12" y="71" width="4" height="24" fill="#8d6440"/><rect x="84" y="71" width="4" height="24" fill="#8d6440"/>
+  return `<ellipse cx="50" cy="96.5" rx="44" ry="1.6" fill="#000" opacity=".08"/>
+    <g fill="#D9BF94"><path d="M22 67 L25 67 L21.5 92 L19.5 92 Z"/><path d="M75 67 L78 67 L80.5 92 L78.5 92 Z"/></g>
+    <g fill="#E6CFA6"><path d="M14 67 L18 67 L10 96 L7.5 96 Z"/><path d="M82 67 L86 67 L92.5 96 L90 96 Z"/></g>
+    <rect x="37" y="67" width="26" height="5.5" rx=".8" fill="#E8D2AB" stroke="#CDB184" stroke-width=".3"/>
+    <circle cx="50" cy="69.8" r="1" fill="#B49467"/>
+    <rect x="5" y="64" width="90" height="3.6" rx="1.8" fill="#EEDAB6"/>
+    <path d="M6.5 67.2 L93.5 67.2" stroke="#D2B688" stroke-width=".5"/>
     <svg x="58" y="30" width="38" height="38" viewBox="0 0 100 100">${lampSVG(true)}</svg>
     ${plate}
     <rect x="14" y="58" width="20" height="8" rx="1" fill="#FFF9EE" stroke="#1F2A5A" stroke-width=".8" transform="rotate(-6 24 62)"/>
