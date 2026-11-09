@@ -16,7 +16,7 @@ body.night{background:var(--night);color:#ecebff}
 h1,h2,h3{font-family:Fraunces,Georgia,serif;margin:0 0 .35em;line-height:1.12}
 p{line-height:1.55;margin:.45em 0}
 #stage{position:fixed;inset:0;overflow-y:auto;display:flex;justify-content:center}
-.screen{width:100%;max-width:480px;padding:18px 16px 36px;display:flex;flex-direction:column;align-items:center;text-align:center;animation:enter .5s ease}
+.screen{width:100%;max-width:480px;padding:48px 16px 36px;display:flex;flex-direction:column;align-items:center;text-align:center;animation:enter .5s ease}
 .screen>:first-child{margin-top:auto}.screen>:last-child{margin-bottom:auto}
 @keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .kicker{font-weight:800;letter-spacing:.1em;font-size:13px;opacity:.7;margin:0 0 6px}
@@ -108,6 +108,8 @@ body.night .btn{box-shadow:4px 4px 0 #000}
 .gift.shake{animation:shake .5s}
 @keyframes shake{20%{transform:rotate(-12deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(6deg)}}
 .letter p{font-size:16px}
+#back{position:fixed;top:10px;left:10px;z-index:25;font:800 14px Nunito;color:var(--ink);background:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:6px 12px;cursor:pointer;opacity:.85}
+#back[hidden]{display:none}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--ink);color:#F4D77A;padding:10px 18px;border-radius:999px;font-weight:800;opacity:0;transition:opacity .3s;z-index:30;pointer-events:none;max-width:90vw;text-align:center}
 .toast.on{opacity:1}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:40}
@@ -115,6 +117,7 @@ body.night .btn{box-shadow:4px 4px 0 #000}
 </head>
 <body>
 <div id="stage"></div>
+<button id="back" hidden onclick="history.back()" aria-label="Geri">← geri</button>
 <div class="toast" id="toast"></div>
 <canvas id="confetti"></canvas>
 
@@ -253,7 +256,35 @@ const fresh = () => ({done: {}, d: {}});
 try { S = JSON.parse(localStorage.getItem("annem11")) || fresh(); } catch (e) { S = fresh(); }
 function save(){ try { localStorage.setItem("annem11", JSON.stringify(S)); } catch (e) {} }
 
-function show(html){ stage.innerHTML = `<div class="screen">${html}</div>`; stage.scrollTop = 0; }
+function show(html){
+  stage.innerHTML = `<div class="screen">${html}</div>`; stage.scrollTop = 0;
+  if (current) current.night = document.body.classList.contains("night");
+}
+
+/* ---------- Geri gitme ----------
+   Her ekran at() ile kendini kaydeder. Oyundaki "geri" butonu da,
+   telefonun geri tuşu/kaydırması da bir önceki ekrana döner; oyundan çıkmaz. */
+const HIST = [];
+let current = null, restoring = false;
+function at(fn){
+  if (restoring){ current = {fn}; return; }
+  if (current) HIST.push(current);
+  current = {fn};
+  history.pushState({n: HIST.length}, "");
+  $("#back").hidden = !HIST.length;
+}
+function goBack(){
+  if (!HIST.length) return;
+  const prev = HIST.pop();
+  restoring = true; current = null;
+  night(!!prev.night);
+  try { prev.fn(); } finally { restoring = false; }
+  $("#back").hidden = !HIST.length;
+}
+addEventListener("popstate", () => {
+  if (HIST.length) goBack();
+  else history.pushState({n: 0}, "");  // ilk ekranda geri basılırsa sayfadan çıkmasın
+});
 function toast(msg, ms = 2200){ const t = $("#toast"); t.textContent = msg; t.classList.add("on"); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove("on"), ms); }
 function night(on){ document.body.classList.toggle("night", on); }
 function chr(w, h){ const [vw, vh] = VB[w]; return `<svg style="height:${h}px;width:${h*vw/vh}px" viewBox="0 0 ${vw} ${vh}"><use href="#c-${w}"/></svg>`; }
@@ -261,17 +292,14 @@ function mix(a, b, t){ const p = h => [1,3,5].map(i => parseInt(h.slice(i, i+2),
 function lum(h){ const [r,g,b] = [1,3,5].map(i => parseInt(h.slice(i, i+2), 16) / 255); return .3*r + .59*g + .11*b; }
 
 /* ---------- Konuşma ---------- */
-function talk(lines, next){
-  let i = 0;
-  const render = () => {
-    const [w, t] = lines[i];
-    show(`<div class="talk">
-      ${w ? `<div class="who-art">${chr(w, w === "marsel" ? 110 : 170)}</div>` : ""}
-      <div class="bubble ${w ? "" : "narr"}">${w ? `<span class="who">${NAMES[w]}</span>` : ""}${fill(t)}</div>
-      <div class="tap">dokun →</div></div>`);
-    stage.firstChild.onclick = () => { i++; i < lines.length ? render() : next(); };
-  };
-  render();
+function talk(lines, next, i = 0){
+  at(() => talk(lines, next, i));
+  const [w, t] = lines[i];
+  show(`<div class="talk">
+    ${w ? `<div class="who-art">${chr(w, w === "marsel" ? 110 : 170)}</div>` : ""}
+    <div class="bubble ${w ? "" : "narr"}">${w ? `<span class="who">${NAMES[w]}</span>` : ""}${fill(t)}</div>
+    <div class="tap">dokun →</div></div>`);
+  stage.firstChild.onclick = () => i + 1 < lines.length ? talk(lines, next, i + 1) : next();
 }
 
 /* ---------- Nesneler (hepsi 100x100 kutuda çizilir) ---------- */
@@ -426,7 +454,9 @@ function roomSVG({dim = false, lampOn = false, family = false, lampId = "", lamp
 }
 
 /* ---------- Tasarım ekranı ---------- */
-function designer({kicker, title, text, key, rows, render, next}){
+function designer(opts){
+  const {kicker, title, text, key, rows, render, next} = opts;
+  at(() => designer(opts));
   const d = S.d[key] ? {...S.d[key]} : Object.fromEntries(rows.map(r => [r.k, r.opts[0][0]]));
   show(`<p class="kicker">${kicker}</p><h2>${title}</h2><p class="muted">${text}</p>
     <div class="preview"><svg viewBox="0 0 100 100" id="pv"></svg></div>
@@ -455,6 +485,7 @@ const CH = [
 function finish(id){ S.done[id] = true; save(); confetti(70); hub(); }
 
 function intro(){
+  at(intro);
   night(false);
   show(`<div class="cal"><div class="mo">KASIM</div><div class="day">10</div></div>
     <h1>Annem Büyüyünce</h1><div class="stripes" style="width:160px"></div>
@@ -479,6 +510,7 @@ function prologue(){
 }
 
 function hub(){
+  at(hub);
   night(false);
   const next = CH.findIndex(c => !S.done[c.id]);
   show(`<p class="kicker">Ev · 10 Kasım gecesi</p>
@@ -517,6 +549,7 @@ function ch1(){
   }));
 }
 function whereHome(){
+  at(whereHome);
   const ans = {
     ist: "Sevdiğin şehir. Kalabalık, yorucu, akrabalar uzakta... ama sen onu seviyorsun, bu az şey değil.",
     ank: "Aile yakında, hayat daha kolay. Sevmesen de bunun da bir değeri var; bunu bilmek de olgunluk.",
@@ -544,6 +577,7 @@ function ch2(){
   ], balance);
 }
 function balance(){
+  at(balance);
   const T = [["Çamur hazırlama",4],["Tornada şekil",6],["Kenar rötuşu",2],["Kurutma",5],["Desen",4],["Sırlama",3],["Fırın",7],["Kalite & paket",5]];
   const TARGET = 12, cuts = [];
   let solved = false;
@@ -594,6 +628,7 @@ function ch3(){
   ], words);
 }
 function words(){
+  at(words);
   const W = ["Organik","Renkli","Minimal","Oyunbaz","Sıcak","Grafik","Yumuşak","Cesur","Zamansız"];
   const sel = [];
   const render = () => {
@@ -639,6 +674,7 @@ function ch4(){
   ], breath);
 }
 function breath(){
+  at(breath);
   const MEM = [
     `${CONFIG.girl}'nın kendi boyadığı o tişört: bir çiçek ve kocaman “GIRL POWER”. Kimden öğrendi sence?`,
     `${CONFIG.boy}'in elinde mısır, yüzünde o gülüş. O gülüşü senden aldı. Bütün yorgunluğa değen o bir saniye.`,
@@ -711,6 +747,7 @@ const CRIT = ["Gelir", "Yaratıcılık", "Aile zamanı", "İstikrar", "Şehir & 
 const OPTS = ["Kurumsal", "Aile işi", "İçerik üretimi", "Tasarım"];
 function dots(name, val){ return `<span class="dots">${[1,2,3,4,5].map(v => `<button data-n="${name}" data-v="${v}" class="${v <= val ? "on" : ""}"></button>`).join("")}</span>`; }
 function weights(){
+  at(weights);
   const w = S.d.mw || CRIT.map(() => 3);
   const render = () => {
     show(`<p class="kicker">Brief 05 · Pusula</p><h2>Senin için ne kadar önemli?</h2><p class="muted">1: az · 5: çok</p>
@@ -722,6 +759,7 @@ function weights(){
   render();
 }
 function ratings(){
+  at(ratings);
   const r = S.d.mr || Object.fromEntries(OPTS.map(o => [o, CRIT.map(() => 3)]));
   const render = () => {
     const y = stage.scrollTop;
@@ -735,6 +773,7 @@ function ratings(){
   render();
 }
 function result(){
+  at(result);
   const w = S.d.mw, r = S.d.mr, tot = w.reduce((a, b) => a + b, 0) * 5;
   const scores = OPTS.map(o => [o, Math.round(r[o].reduce((s, v, i) => s + v * w[i], 0) / tot * 100)]).sort((a, b) => b[1] - a[1]);
   const topW = Math.max(...w), topCrit = CRIT.filter((_, i) => w[i] === topW);
@@ -751,6 +790,7 @@ function result(){
 
 /* ---------- Final ---------- */
 function finale(){
+  at(finale);
   night(true);
   show(`<p class="kicker" style="color:#ecebff">Ev</p><h2>Ev kuruldu. Bir şey eksik.</h2>
     <div class="room">${roomSVG({dim: true, lampId: "lamp", lamp: true})}</div>
@@ -770,30 +810,34 @@ function finale(){
   };
 }
 function letter(){
+  at(letter);
   show(`<div class="card letter"><h2 style="text-align:center">Bir not</h2><div class="stripes"></div>
     ${CONFIG.letter.map(l => `<p>${fill(l)}</p>`).join("")}</div>
     <button class="btn" id="ok">Takvime bak →</button>`);
   $("#ok").onclick = calendar;
 }
 function calendar(){
+  at(calendar);
   show(`<div class="cal"><div class="mo">KASIM</div><div class="day" id="day">10</div></div>
     <h2 id="ct">Gece yarısı oldu.</h2>
     <div id="gs" style="display:none"><div class="gift" id="gift">🎁</div><p class="muted" id="gh">Kutuya dokun</p></div>`);
   setTimeout(() => {
-    const d = $("#day"); d.classList.add("turn");
-    setTimeout(() => { d.textContent = "11"; $("#ct").textContent = "11 Kasım. İyi ki doğdun!"; confetti(120); }, 450);
-    setTimeout(() => { $("#gs").style.display = "block"; }, 1600);
+    const d = $("#day"); if (!d) return;  // bu arada geri gidildiyse
+    d.classList.add("turn");
+    setTimeout(() => { if (!$("#ct")) return; d.textContent = "11"; $("#ct").textContent = "11 Kasım. İyi ki doğdun!"; confetti(120); }, 450);
+    setTimeout(() => { if ($("#gs")) $("#gs").style.display = "block"; }, 1600);
   }, 900);
   let taps = 0;
-  stage.addEventListener("click", e => {
+  stage.onclick = e => {
     if (e.target.id !== "gift") return;
     const g = e.target; taps++;
     g.classList.remove("shake"); void g.offsetWidth; g.classList.add("shake");
     $("#gh").textContent = ["Biraz daha...", "Neredeyse!", ""][Math.min(2, taps - 1)];
     if (taps === 3) setTimeout(reveal, 450);
-  });
+  };
 }
 function reveal(){
+  at(reveal);
   const G = CONFIG.gift;
   show(`<div class="card" style="text-align:center"><p class="muted">Doğum günü hediyen</p><h2>${G.title}</h2><div class="stripes"></div>
     ${G.image ? `<img src="${G.image}" alt="" style="width:100%;border-radius:14px;border:3px solid var(--ink)">` : `<div class="preview" style="margin:6px auto;width:220px"><svg viewBox="0 0 100 100">${deskSVG()}</svg></div>`}
